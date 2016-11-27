@@ -1,0 +1,21 @@
+#!/bin/bash -e
+
+# CINDER_IMAGE_ID=$(glance image-list|grep cirros|awk '{print $2 }'|head -1)
+
+# create 100 volumes in batches of 10, and then delete them all
+for i in $(seq 10); do
+    for j in $(seq 10); do
+        ij=$(printf %02d $(( $((i-1))*10 + j-1 )) )
+
+        if test -n "$CINDER_IMAGE_ID"
+        then    cinder create 1 --volume-type hpmsa --name test-vol-$ij --image-id "$CINDER_IMAGE_ID" &
+        else    cinder create 1 --volume-type hpmsa --name test-vol-$ij &
+        fi
+    done
+
+    n=9999
+    while [[ $n -gt 0 ]]
+    do  n="$(cinder list --status creating|grep ' creating '|wc -l)"
+        echo "$n volume(s) still creating"
+    done
+done

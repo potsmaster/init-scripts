@@ -1,0 +1,7 @@
+#!/bin/bash
+
+oem=${1:-hpmsa}
+source ~/devstack/openrc admin demo
+
+cinder type-create $oem
+cinder type-key $oem set volume_backend_name=${oem}-array

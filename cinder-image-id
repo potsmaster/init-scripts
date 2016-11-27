@@ -1,0 +1,5 @@
+#!/bin/bash -e
+
+CINDER_IMAGE_ID=$(glance image-list|grep cirros|awk '{print $2 }'|head -1)
+
+echo CINDER_IMAGE_ID=$CINDER_IMAGE_ID

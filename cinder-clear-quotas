@@ -1,0 +1,9 @@
+#!/bin/bash -xe
+
+CHANGES="--gigabytes=-1 --snapshots=-1 --volumes=-1 --instances=-1 --floating-ips=-1 --cores=-1"
+
+    for project in admin demo cinder $(openstack project list|grep ' demo '|awk '{print $2}'); do
+        OS_VOLUME_API_VERSION=1 openstack quota set $project $CHANGES
+        OS_VOLUME_API_VERSION=1 openstack quota show $project
+    done
+

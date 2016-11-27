@@ -1,0 +1,32 @@
+#!/bin/bash -x
+
+FILE=/tmp/tbd-$$
+trap "rm $FILE" 0
+
+# Add --all-tenants argument to delete *all* Cinder volumes
+: cinder-reset-all "$@"
+
+cinder list "$@" | cut -d'|' -f2 | egrep '[0-9a-f]' > $FILE
+
+unset eof
+while ! test $eof
+do
+    for i in $(seq 1 20)
+    do
+        if read id
+        then cinder delete $id &
+        else eof=1
+        fi
+    done
+    wait
+    while test "$(cinder list --status deleting|grep deleting|wc -l)" -gt 20
+    do sleep 5
+    done
+done < $FILE
+
+while test "$(cinder list --status deleting|grep deleting|wc -l)" -gt 0
+do sleep 5
+done
+
+n=$(cinder list "$@" | egrep 'hpmsa|lenovo|dothill' | wc -l)
+echo $(date) - volumes still present = $n

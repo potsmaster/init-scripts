@@ -1,0 +1,3 @@
+#!/bin/bash
+
+cd ~/devstack && ./stack.sh && cinder-setup-types && cinder-clear-quotas

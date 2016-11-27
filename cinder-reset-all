@@ -1,0 +1,4 @@
+#!/bin/bash -x
+
+# Add --all-tenants argument to reset *all* Cinder volumes
+cinder reset-state --state error $(cinder list "$@" | egrep -v ' (error|available) ' | awk '{print $2}' | egrep '[0-9a-f]')

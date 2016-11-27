@@ -1,0 +1,22 @@
+#!/bin/bash -e
+
+FILE=/tmp/create-vols-$$
+trap "rm -f $FILE" 0 2
+
+cinder-delete-all
+
+n=0
+touch $FILE
+
+while [[ -f $FILE ]]
+do
+    ((n+=1))
+    start=$(date +%s)
+    echo Starting pass $n on $(date)
+    logger -t chris "cinder-create-delete: Starting pass $n"
+    time cinder-create-volumes
+    time cinder-delete-all
+    finish=$(date +%s)
+    echo Finished pass $n on $(date), elapsed time = $(( $finish - $start )) seconds
+    logger -t chris "cinder-create-delete: Finished pass $n, elapsed time = $(( $finish - $start )) seconds"
+done

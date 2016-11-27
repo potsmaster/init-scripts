@@ -1,0 +1,17 @@
+#!/bin/bash -ex
+
+source ~/devstack/openrc admin
+
+########################################################################
+
+cd /opt/stack/cinder 
+./run_tests.sh -p
+./run_tests.sh test_dothill
+
+########################################################################
+
+cd /opt/stack/tempest
+
+export 'DEVSTACK_GATE_TEMPEST_REGEX=^(?=.*volume*)(?!.*tempest.scenario.test_encrypted_cinder_volumes.TestEncryptedCinderVolumes.test_encrypted_cinder_volumes_cryptsetup)(?!.*tempest.scenario.test_encrypted_cinder_volumes.TestEncryptedCinderVolumes.test_encrypted_cinder_volumes_luks)(?!.*tempest.thirdparty.boto.test_ec2_instance.*)(?!.*tempest.scenario.test_volume_boot_pattern.*)(?!.*tempest.scenario.test_minimum_basic.*)(?!.*tempest.api.volume.test_volumes_actions.VolumesV1ActionsTest)'
+
+tox -e all -- volume --concurrency=1 | tee -a console.log.out

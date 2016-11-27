@@ -1,0 +1,48 @@
+#!/bin/bash
+
+file=/etc/console-setup/remap.inc
+cache=/etc/console-setup/cached.kmap.gz
+
+panic() { echo $0: $@ >&2; exit 1; }
+
+test -f $file ||
+	panic "$file not found (try 'apt-get install console-setup')"
+
+test -w $file ||
+	panic "$file not writable (this script must be run as root)"
+
+grep -q -s 'Swap ESC' $file &&
+	echo "$file has already been modified" ||
+	cat <<'EOF' >>$file
+
+#
+# To remap a typical US PC keyboard to work like a VT100 keyboard,
+# swapping Escape with grave/tilde, and Caps Lock with Control:
+#
+# apt-get install console-setup
+# (add the lines below to /etc/console-setup/remap.inc)
+# rm /etc/console-setup/cached.kmap.gz
+# setupcon -v
+# 
+
+# Swap ESC and grave/tilde
+keycode  41 = Escape
+keycode   1 = grave           
+	shift	keycode   1 = asciitilde      
+	shift	shiftl	keycode   1 = asciitilde      
+	shift	shiftr	keycode   1 = asciitilde      
+	shift	shiftl	shiftr	keycode   1 = asciitilde      
+	shift	ctrll	keycode   1 = asciitilde      
+	shift	shiftl	ctrll	keycode   1 = asciitilde      
+	shift	shiftr	ctrll	keycode   1 = asciitilde      
+	shift	shiftl	shiftr	ctrll	keycode   1 = asciitilde      
+
+# Swap Caps Lock and Control
+keycode  58 = Control         
+keycode  29 = CtrlL_Lock      
+
+EOF
+
+echo "Note: if running under X11, 'setupcon' must be run on a Linux console."
+test -f "$cache" && rm $cache
+setupcon -v
