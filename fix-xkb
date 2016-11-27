@@ -1,0 +1,22 @@
+#!/bin/bash 
+# Swap the functions of the Escape key and the tilde key.
+
+esc_file=/usr/share/X11/xkb/symbols/esc
+test -r $esc_file || cat >$esc_file <<'EOF'
+partial alphanumeric_keys
+xkb_symbols "swaptilde" {
+    replace key <ESC>	{ [ grave, asciitilde ] };
+    replace key <TLDE>	{ [ Escape ] };
+};
+EOF
+
+evdev_file=/usr/share/X11/xkb/rules/evdev
+
+grep -q esc:swaptilde $evdev_file ||
+    echo >> $$evdev_file "esc:swaptilde		=	+esc(swaptilde)"
+
+kbd_file=/etc/default/keyboard
+grep -q esc:swaptilde $kbd_file || 
+  sed -i.BACKUP -e 's/^XKBOPTIONS=.*/XKBOPTIONS="terminate:ctrl_alt_bksp caps:swapctrl esc:swaptilde"/' $kbd_file
+
+setxkbmap -model pc105 -layout us -option '' -option ctrl:swapcaps -option 'esc:swaptilde'

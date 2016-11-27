@@ -1,0 +1,37 @@
+#!/bin/sh --
+
+tmpfile=/tmp/fix-kbd-$$
+trap "rm -f $tmpfile" 0
+
+cd
+
+if xinput --list | grep -q 'Logitech USB Trackball' 
+then
+    if test -d /usr/share/X11/xorg.conf.d
+    then
+        if test ! -r /usr/share/X11/xorg.conf.d/12-evdev-marble-mouse.conf
+        then
+            ln -s ~/lib/xorg-evdev-marble-mouse.conf /usr/share/X11/xorg.conf.d/12-evdev-marble-mouse.conf
+            echo >&2 WARNING: You may need to log out and back in again before the Marble Mouse will work as expected.
+        else
+            echo Relying on /usr/share/X11/xorg.conf.d/12-evdev-marble-mouse.conf for scrolling and middle button emulation.
+        fi
+    else
+        echo Using xinput --set-button-map to map middle button function onto smaller buttons
+        xinput --set-button-map "Logitech USB Trackball" 1 2 3 4 5 6 7 2 2
+    fi
+fi
+# xmodmap .keymap.linux
+
+xkbcomp -xkb $DISPLAY $tmpfile
+export $(egrep '<(CAPS|LCTL|TLDE|ESC)> =' $tmpfile | tr -d "<> ;")
+if [ $ESC != 49 ]
+then
+    cat $tmpfile |
+    sed -e "s/<TLDE> = [0-9]*;/<TLDE> = $ESC;/" \
+        -e "s/<ESC> = [0-9]*;/<ESC> = $TLDE;/" \
+        -e "s/<LCTL> = [0-9]*;/<LCTL> = $CAPS;/" \
+        -e "s/<CAPS> = [0-9]*;/<CAPS> = $LCTL;/" |
+    xkbcomp - $DISPLAY 2>&1 | (egrep -v 'Warning:.*No symbols defined for|Using new definit' && 
+        echo Warning: Some warnings hidden.) | sed -e 's/ [ ]*/ /g'
+fi

@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# Note that you can search for something to install with
+#   cygcheck -p wget
+
+setup=c:/disks/downloads/cygwin-setup.exe
+
+test -e c:/disks/downloads/cygwin-setup.exe || 
+    wget -O $setup http://cygwin.com/setup-x86.exe
+
+# set up $ARGV for cygwin's setup.exe
+test ! -z "$@" && set -- -q -P "$@"
+
+cmd /c $(cygpath -wa $setup) "$@"
