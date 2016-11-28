@@ -1,0 +1,4 @@
+#!/bin/bash
+gid=$(egrep '#gid' .stokenrc | cut -c6-)
+stoken | 
+  sudo openconnect -v -b --juniper --token-mode rsa --no-cert-check -u $(gid) --passwd-on-stdin ssl-lco.seagate.com
